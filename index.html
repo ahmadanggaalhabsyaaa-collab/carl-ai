@@ -306,7 +306,7 @@ async function sendMessage() {
 
     reply.textContent = data.reply || "CARL menerima pesan.";
   } catch (error) {
-    reply.textContent = "CARL belum bisa terhubung. Coba lagi.";
+    reply.textContent = "Error: " + error.message;
   }
 
   window.scrollTo(0, document.body.scrollHeight);
