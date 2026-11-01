@@ -254,6 +254,63 @@ document.getElementById("message")
   .addEventListener("keydown", function(e) {
     if (e.key === "Enter") sendMessage();
   });
+
+async function sendMessage() {
+  const input = document.getElementById("message");
+  const chat = document.getElementById("chat");
+  const welcome = document.getElementById("welcome");
+
+  const text = input.value.trim();
+  if (!text) return;
+
+  welcome.style.display = "none";
+
+  const userMessage = document.createElement("div");
+  userMessage.className = "message user";
+  userMessage.textContent = text;
+  chat.appendChild(userMessage);
+
+  const botMessage = document.createElement("div");
+  botMessage.className = "message bot";
+
+  const sender = document.createElement("div");
+  sender.className = "sender";
+  sender.textContent = "CARL";
+
+  const reply = document.createElement("div");
+  reply.textContent = "CARL sedang memproses...";
+
+  botMessage.appendChild(sender);
+  botMessage.appendChild(reply);
+  chat.appendChild(botMessage);
+
+  input.value = "";
+
+  try {
+    const response = await fetch(
+      "https://carl-api.ahmadanggaalhabsy-aaa.workers.dev/",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ message: text })
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error("Koneksi gagal");
+    }
+
+    reply.textContent = data.reply || "CARL menerima pesan.";
+  } catch (error) {
+    reply.textContent = "CARL belum bisa terhubung. Coba lagi.";
+  }
+
+  window.scrollTo(0, document.body.scrollHeight);
+}
 </script>
 
 </body>
