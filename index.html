@@ -1,0 +1,260 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CARL - Personal AI</title>
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #080d16;
+  color: #eaf3ff;
+  font-family: Arial, sans-serif;
+  min-height: 100vh;
+}
+
+header {
+  padding: 22px;
+  border-bottom: 1px solid #1b3550;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.logo {
+  width: 43px;
+  height: 43px;
+  border: 2px solid #38bdf8;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #38bdf8;
+  font-size: 21px;
+  box-shadow: 0 0 15px #087da866;
+}
+
+header h2 {
+  margin: 0;
+  letter-spacing: 4px;
+}
+
+header small {
+  color: #38bdf8;
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+
+.status {
+  margin-left: auto;
+  color: #4ade80;
+  font-size: 11px;
+}
+
+main {
+  max-width: 700px;
+  margin: auto;
+  padding: 25px 17px 110px;
+}
+
+.welcome {
+  text-align: center;
+  margin: 65px 0 35px;
+}
+
+.core {
+  width: 105px;
+  height: 105px;
+  margin: auto;
+  border: 2px solid #38bdf8;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 43px;
+  color: #38bdf8;
+  box-shadow: 0 0 35px #0284c766,
+              inset 0 0 25px #0284c733;
+}
+
+.welcome h1 {
+  letter-spacing: 7px;
+  margin-bottom: 8px;
+}
+
+.welcome p {
+  color: #8198b1;
+  font-size: 13px;
+}
+
+#chat {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.message {
+  padding: 14px 16px;
+  border-radius: 14px;
+  max-width: 85%;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.bot {
+  align-self: flex-start;
+  background: #12243a;
+  border: 1px solid #1c4668;
+}
+
+.user {
+  align-self: flex-end;
+  background: #075985;
+}
+
+.sender {
+  color: #38bdf8;
+  font-size: 10px;
+  margin-bottom: 6px;
+  letter-spacing: 1px;
+}
+
+.composer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #080d16;
+  padding: 15px;
+  border-top: 1px solid #1b3550;
+}
+
+.input-area {
+  max-width: 700px;
+  margin: auto;
+  display: flex;
+  gap: 9px;
+}
+
+input {
+  flex: 1;
+  min-width: 0;
+  background: #111e2e;
+  color: white;
+  border: 1px solid #244562;
+  border-radius: 12px;
+  padding: 15px;
+  outline: none;
+}
+
+button {
+  background: #0284c7;
+  border: none;
+  border-radius: 12px;
+  padding: 0 19px;
+  color: white;
+  font-size: 17px;
+  cursor: pointer;
+}
+
+button:active {
+  background: #0369a1;
+}
+
+footer {
+  text-align: center;
+  color: #52677e;
+  font-size: 10px;
+  margin-top: 25px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">C</div>
+  <div>
+    <h2>CARL</h2>
+    <small>PERSONAL AI ASSISTANT</small>
+  </div>
+  <div class="status">● ONLINE</div>
+</header>
+
+<main>
+  <section class="welcome" id="welcome">
+    <div class="core">✧</div>
+    <h1>HELLO, HUMAN.</h1>
+    <p>CARL interface initialized.</p>
+    <p>Personal AI system — Version 0.1</p>
+  </section>
+
+  <section id="chat">
+    <div class="message bot">
+      <div class="sender">CARL</div>
+      Halo! Saya CARL, asisten pribadi Anda.
+      Antarmuka saya sudah aktif. Saat ini saya
+      masih dalam tahap pengembangan.
+    </div>
+  </section>
+
+  <footer>
+    CARL PROJECT © 2026
+  </footer>
+</main>
+
+<div class="composer">
+  <div class="input-area">
+    <input id="message"
+      type="text"
+      placeholder="Katakan sesuatu kepada CARL..."
+      autocomplete="off">
+    <button onclick="sendMessage()">➤</button>
+  </div>
+</div>
+
+<script>
+function sendMessage() {
+  const input = document.getElementById("message");
+  const chat = document.getElementById("chat");
+  const welcome = document.getElementById("welcome");
+
+  const text = input.value.trim();
+  if (!text) return;
+
+  welcome.style.display = "none";
+
+  const userMessage = document.createElement("div");
+  userMessage.className = "message user";
+  userMessage.textContent = text;
+  chat.appendChild(userMessage);
+
+  const botMessage = document.createElement("div");
+  botMessage.className = "message bot";
+
+  const sender = document.createElement("div");
+  sender.className = "sender";
+  sender.textContent = "CARL";
+
+  const reply = document.createElement("div");
+  reply.textContent =
+    "Pesan diterima. Otak AI CARL belum dihubungkan. " +
+    "Fitur kecerdasan akan kita bangun pada tahap berikutnya.";
+
+  botMessage.appendChild(sender);
+  botMessage.appendChild(reply);
+  chat.appendChild(botMessage);
+
+  input.value = "";
+  window.scrollTo(0, document.body.scrollHeight);
+}
+
+document.getElementById("message")
+  .addEventListener("keydown", function(e) {
+    if (e.key === "Enter") sendMessage();
+  });
+</script>
+
+</body>
+</html>
