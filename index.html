@@ -166,10 +166,6 @@ button:disabled {
   cursor: wait;
 }
 
-button:active {
-  background: #0369a1;
-}
-
 footer {
   text-align: center;
   color: #52677e;
@@ -195,14 +191,14 @@ footer {
     <div class="core">✧</div>
     <h1>HELLO, HUMAN.</h1>
     <p>CARL interface initialized.</p>
-    <p>Personal AI system — Version 0.2</p>
+    <p>Personal AI system — Version 0.3</p>
   </section>
 
   <section id="chat">
     <div class="message bot">
       <div class="sender">CARL</div>
-      Halo! Saya CARL, asisten pribadi Anda.
-      Ada yang bisa saya bantu hari ini?
+      Halo! Saya CARL, asisten pribadi Angga.
+      Senang bisa kembali berbicara denganmu.
     </div>
   </section>
 
@@ -228,7 +224,6 @@ const chat = document.getElementById("chat");
 const welcome = document.getElementById("welcome");
 const sendButton = document.getElementById("sendButton");
 
-// Riwayat percakapan sementara selama halaman terbuka.
 let conversationHistory = [];
 
 function addMessage(senderName, text, type) {
@@ -256,7 +251,7 @@ async function sendMessage() {
 
   welcome.style.display = "none";
 
-  addMessage("ANDA", text, "user");
+  addMessage("ANGGA", text, "user");
 
   const reply = addMessage(
     "CARL",
@@ -267,16 +262,13 @@ async function sendMessage() {
   input.value = "";
   sendButton.disabled = true;
 
-  // Sertakan maksimal 12 pesan sebelumnya dan pesan terbaru.
-  const currentHistory = [
+  const pendingHistory = [
     ...conversationHistory,
-    { role: "user", content: text }
+    {
+      role: "user",
+      content: text
+    }
   ].slice(-12);
-
-  const context = currentHistory.map(item => {
-    const name = item.role === "user" ? "PENGGUNA" : "CARL";
-    return name + ": " + item.content;
-  }).join("\n\n");
 
   try {
     const response = await fetch(API_URL, {
@@ -285,10 +277,7 @@ async function sendMessage() {
         "Content-Type": "text/plain"
       },
       body: JSON.stringify({
-        message:
-          "Berikut riwayat percakapan kita. Gunakan konteks ini " +
-          "untuk memahami pesan terbaru.\n\n" +
-          context
+        messages: pendingHistory
       })
     });
 
@@ -304,10 +293,12 @@ async function sendMessage() {
 
     reply.textContent = answer;
 
-    // Simpan percakapan hanya setelah mendapat jawaban.
     conversationHistory = [
-      ...currentHistory,
-      { role: "assistant", content: answer }
+      ...pendingHistory,
+      {
+        role: "assistant",
+        content: answer
+      }
     ].slice(-12);
 
   } catch (error) {
