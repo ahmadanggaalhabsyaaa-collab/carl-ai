@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CARL - Personal AI</title>
+
 <style>
 * { box-sizing: border-box; }
 
@@ -98,8 +99,10 @@ main {
   padding: 14px 16px;
   border-radius: 14px;
   max-width: 85%;
-  line-height: 1.5;
+  line-height: 1.6;
   font-size: 14px;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
 }
 
 .bot {
@@ -158,6 +161,11 @@ button {
   cursor: pointer;
 }
 
+button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
 button:active {
   background: #0369a1;
 }
@@ -187,21 +195,18 @@ footer {
     <div class="core">✧</div>
     <h1>HELLO, HUMAN.</h1>
     <p>CARL interface initialized.</p>
-    <p>Personal AI system — Version 0.1</p>
+    <p>Personal AI system — Version 0.2</p>
   </section>
 
   <section id="chat">
     <div class="message bot">
       <div class="sender">CARL</div>
       Halo! Saya CARL, asisten pribadi Anda.
-      Antarmuka saya sudah aktif. Saat ini saya
-      masih dalam tahap pengembangan.
+      Ada yang bisa saya bantu hari ini?
     </div>
   </section>
 
-  <footer>
-    CARL PROJECT © 2026
-  </footer>
+  <footer>CARL PROJECT © 2026</footer>
 </main>
 
 <div class="composer">
@@ -210,107 +215,116 @@ footer {
       type="text"
       placeholder="Katakan sesuatu kepada CARL..."
       autocomplete="off">
-    <button onclick="sendMessage()">➤</button>
+    <button id="sendButton" onclick="sendMessage()">➤</button>
   </div>
 </div>
 
 <script>
-function sendMessage() {
-  const input = document.getElementById("message");
-  const chat = document.getElementById("chat");
-  const welcome = document.getElementById("welcome");
+const API_URL =
+  "https://carl-api.ahmadanggaalhabsy-aaa.workers.dev/";
 
-  const text = input.value.trim();
-  if (!text) return;
+const input = document.getElementById("message");
+const chat = document.getElementById("chat");
+const welcome = document.getElementById("welcome");
+const sendButton = document.getElementById("sendButton");
 
-  welcome.style.display = "none";
+// Riwayat percakapan sementara selama halaman terbuka.
+let conversationHistory = [];
 
-  const userMessage = document.createElement("div");
-  userMessage.className = "message user";
-  userMessage.textContent = text;
-  chat.appendChild(userMessage);
-
-  const botMessage = document.createElement("div");
-  botMessage.className = "message bot";
+function addMessage(senderName, text, type) {
+  const box = document.createElement("div");
+  box.className = "message " + type;
 
   const sender = document.createElement("div");
   sender.className = "sender";
-  sender.textContent = "CARL";
+  sender.textContent = senderName;
 
-  const reply = document.createElement("div");
-  reply.textContent =
-    "Pesan diterima. Otak AI CARL belum dihubungkan. " +
-    "Fitur kecerdasan akan kita bangun pada tahap berikutnya.";
+  const content = document.createElement("div");
+  content.textContent = text;
 
-  botMessage.appendChild(sender);
-  botMessage.appendChild(reply);
-  chat.appendChild(botMessage);
+  box.appendChild(sender);
+  box.appendChild(content);
+  chat.appendChild(box);
 
-  input.value = "";
-  window.scrollTo(0, document.body.scrollHeight);
+  return content;
 }
 
-document.getElementById("message")
-  .addEventListener("keydown", function(e) {
-    if (e.key === "Enter") sendMessage();
-  });
-
 async function sendMessage() {
-  const input = document.getElementById("message");
-  const chat = document.getElementById("chat");
-  const welcome = document.getElementById("welcome");
-
   const text = input.value.trim();
-  if (!text) return;
+
+  if (!text || sendButton.disabled) return;
 
   welcome.style.display = "none";
 
-  const userMessage = document.createElement("div");
-  userMessage.className = "message user";
-  userMessage.textContent = text;
-  chat.appendChild(userMessage);
+  addMessage("ANDA", text, "user");
 
-  const botMessage = document.createElement("div");
-  botMessage.className = "message bot";
-
-  const sender = document.createElement("div");
-  sender.className = "sender";
-  sender.textContent = "CARL";
-
-  const reply = document.createElement("div");
-  reply.textContent = "CARL sedang memproses...";
-
-  botMessage.appendChild(sender);
-  botMessage.appendChild(reply);
-  chat.appendChild(botMessage);
+  const reply = addMessage(
+    "CARL",
+    "Sedang memproses...",
+    "bot"
+  );
 
   input.value = "";
+  sendButton.disabled = true;
+
+  // Sertakan maksimal 12 pesan sebelumnya dan pesan terbaru.
+  const currentHistory = [
+    ...conversationHistory,
+    { role: "user", content: text }
+  ].slice(-12);
+
+  const context = currentHistory.map(item => {
+    const name = item.role === "user" ? "PENGGUNA" : "CARL";
+    return name + ": " + item.content;
+  }).join("\n\n");
 
   try {
-    const response = await fetch(
-      "https://carl-api.ahmadanggaalhabsy-aaa.workers.dev/",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "text/plain"
-        },
-        body: JSON.stringify({ message: text })
-      }
-    );
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain"
+      },
+      body: JSON.stringify({
+        message:
+          "Berikut riwayat percakapan kita. Gunakan konteks ini " +
+          "untuk memahami pesan terbaru.\n\n" +
+          context
+      })
+    });
 
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error("Koneksi gagal");
+      throw new Error(
+        data.details || data.error || "Koneksi gagal"
+      );
     }
 
-    reply.textContent = data.reply || "CARL menerima pesan.";
+    const answer = data.reply || "CARL menerima pesan.";
+
+    reply.textContent = answer;
+
+    // Simpan percakapan hanya setelah mendapat jawaban.
+    conversationHistory = [
+      ...currentHistory,
+      { role: "assistant", content: answer }
+    ].slice(-12);
+
   } catch (error) {
-    reply.textContent = "Error: " + error.message;
+    reply.textContent = "Terjadi kesalahan: " + error.message;
   }
+
+  sendButton.disabled = false;
+  input.focus();
 
   window.scrollTo(0, document.body.scrollHeight);
 }
+
+input.addEventListener("keydown", function(event) {
+  if (event.key === "Enter") {
+    sendMessage();
+  }
+});
 </script>
 
 </body>
