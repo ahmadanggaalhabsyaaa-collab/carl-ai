@@ -147,33 +147,14 @@ main {
   display: flex;
   align-items: flex-end;
   gap: 9px;
-}
-
-textarea {
-  flex: 1;
-  min-width: 0;
-  min-height: 54px;
-  max-height: 140px;
-  resize: none;
-  overflow-y: auto;
-  background: #111e2e;
-  color: white;
-  border: 1px solid #244562;
-  border-radius: 12px;
-  padding: 15px;
-  outline: none;
-  font-family: Arial, sans-serif;
-  font-size: 16px;
-  line-height: 1.5;
-}
-
-textarea::placeholder {
-  color: #8198b1;
-}
-
-textarea:focus {
-  border-color: #0284c7;
-}
+<textarea
+  id="message"
+  rows="1"
+  placeholder="Katakan sesuatu kepada CARL..."
+  autocomplete="off"
+  enterkeyhint="enter"
+  inputmode="text"
+></textarea>
 
 button {
   flex-shrink: 0;
