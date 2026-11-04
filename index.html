@@ -3,18 +3,24 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
 <title>CARL - Personal AI</title>
 
 <style>
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+}
 
 body {
   margin: 0;
   background: #080d16;
   color: #eaf3ff;
   font-family: Arial, sans-serif;
-  min-height: 100vh;
+  min-height: 100%;
 }
 
 header {
@@ -57,7 +63,7 @@ header small {
 main {
   max-width: 700px;
   margin: auto;
-  padding: 25px 17px 110px;
+  padding: 25px 17px calc(var(--composer-height, 100px) + 25px);
 }
 
 .welcome {
@@ -128,8 +134,10 @@ main {
   bottom: 0;
   left: 0;
   right: 0;
+  z-index: 100;
   background: #080d16;
-  padding: 15px;
+  padding: 12px 15px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
   border-top: 1px solid #1b3550;
 }
 
@@ -137,27 +145,45 @@ main {
   max-width: 700px;
   margin: auto;
   display: flex;
+  align-items: flex-end;
   gap: 9px;
 }
 
-input {
+textarea {
   flex: 1;
   min-width: 0;
+  min-height: 54px;
+  max-height: 140px;
+  resize: none;
+  overflow-y: auto;
   background: #111e2e;
   color: white;
   border: 1px solid #244562;
   border-radius: 12px;
   padding: 15px;
   outline: none;
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+textarea::placeholder {
+  color: #8198b1;
+}
+
+textarea:focus {
+  border-color: #0284c7;
 }
 
 button {
+  flex-shrink: 0;
+  width: 64px;
+  height: 54px;
   background: #0284c7;
   border: none;
   border-radius: 12px;
-  padding: 0 19px;
   color: white;
-  font-size: 17px;
+  font-size: 23px;
   cursor: pointer;
 }
 
@@ -172,6 +198,7 @@ footer {
   font-size: 10px;
   margin-top: 25px;
 }
+
 </style>
 </head>
 
@@ -205,12 +232,16 @@ footer {
   <footer>CARL PROJECT © 2026</footer>
 </main>
 
-<div class="composer">
+<div class="composer" id="composer">
   <div class="input-area">
-    <input id="message"
-      type="text"
+    <textarea
+      id="message"
+      rows="1"
       placeholder="Katakan sesuatu kepada CARL..."
-      autocomplete="off">
+      autocomplete="off"
+      enterkeyhint="enter"
+    ></textarea>
+
     <button id="sendButton" onclick="sendMessage()">➤</button>
   </div>
 </div>
@@ -223,8 +254,50 @@ const input = document.getElementById("message");
 const chat = document.getElementById("chat");
 const welcome = document.getElementById("welcome");
 const sendButton = document.getElementById("sendButton");
+const composer = document.getElementById("composer");
+const main = document.querySelector("main");
 
 let conversationHistory = [];
+
+// Menyesuaikan ruang bawah dengan tinggi kolom pesan
+function updateComposerHeight() {
+  const height = composer.offsetHeight;
+  document.documentElement.style.setProperty(
+    "--composer-height",
+    height + "px"
+  );
+}
+
+if ("ResizeObserver" in window) {
+  const observer = new ResizeObserver(updateComposerHeight);
+  observer.observe(composer);
+}
+
+window.addEventListener("resize", updateComposerHeight);
+window.addEventListener("load", updateComposerHeight);
+
+// Membuat textarea bertambah tinggi otomatis
+function resizeInput() {
+  input.style.height = "54px";
+  input.style.height = Math.min(input.scrollHeight, 140) + "px";
+  updateComposerHeight();
+}
+
+input.addEventListener("input", resizeInput);
+
+// Mengarahkan tampilan ke pesan terbaru
+function scrollToLatest() {
+  requestAnimationFrame(() => {
+    const lastMessage = chat.lastElementChild;
+
+    if (lastMessage) {
+      lastMessage.scrollIntoView({
+        behavior: "smooth",
+        block: "end"
+      });
+    }
+  });
+}
 
 function addMessage(senderName, text, type) {
   const box = document.createElement("div");
@@ -260,7 +333,10 @@ async function sendMessage() {
   );
 
   input.value = "";
+  resizeInput();
+
   sendButton.disabled = true;
+  scrollToLatest();
 
   const pendingHistory = [
     ...conversationHistory,
@@ -306,16 +382,19 @@ async function sendMessage() {
   }
 
   sendButton.disabled = false;
-  input.focus();
-
-  window.scrollTo(0, document.body.scrollHeight);
+  scrollToLatest();
 }
 
+// Enter membuat baris baru.
+// Ctrl + Enter mengirim pesan.
 input.addEventListener("keydown", function(event) {
-  if (event.key === "Enter") {
+  if (event.key === "Enter" && event.ctrlKey) {
+    event.preventDefault();
     sendMessage();
   }
 });
+
+updateComposerHeight();
 </script>
 
 </body>
